@@ -1,0 +1,21 @@
+[st_calculation]
+start = -9
+end = 1
+
+[st_plotting]
+top_n = 3
+plot_folder = "Plots"
+[noise_parameters]
+noise_min = 0
+noise_max = 10
+n_noise = 10
+
+[unit_processor]
+dt = 0.01
+save_plots = false
+max_per_row = 5
+
+h5_dir = "exp_data/h5_halffield"
+led_dir = "exp_data/led_halffield"
+export_dir = "export"
+plot_dir = "plots"
