@@ -37,8 +37,8 @@ Example scripts are located in the 'example_scripts' folder. The jupyter-noteboo
 
 ```bash
 [unit_processor]
-h5_dir = "exp_data/h5_halffield"
-led_dir = "exp_data/led_halffield"
+h5_dir = "exp_data/h5_halffield"  # Directory for spikesonly files
+led_dir = "exp_data/led_halffield" # Directory for synced led logs
 export_dir = "export"
 plot_dir = "plots"
 ```
