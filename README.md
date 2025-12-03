@@ -1,5 +1,5 @@
 # RFArduinoData
-This utilizes the framework established in RFAnalysis (https://github.com/fschwar4/sta_analysis) and extends it to experimental data synchronized using the framework in led-logging (https://gitlab.gwdg.de/cadler/led_logging/-/tree/refactor?ref_type=heads) which will soon be replaced by LED_DE_Syncing (https://github.com/olsaledob/LED_DE_Syncing)
+This utilizes the framework established in [RFAnalysis](https://github.com/fschwar4/sta_analysis) and extends it to experimental data synchronized using the framework in [led-logging](https://gitlab.gwdg.de/cadler/led_logging/-/tree/refactor?ref_type=heads) which will soon be replaced by [LED_DE_Syncing](https://github.com/olsaledob/LED_DE_Syncing)
 
 ## Modules
 The modules employed can be found in the 'modules' folder. The main modules are
