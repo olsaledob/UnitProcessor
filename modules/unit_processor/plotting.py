@@ -156,7 +156,7 @@ def plot_sta_grid_lag0(npz_path, save_plots=False, plot_dir="./plots", logger=No
 
     if save_plots:
         os.makedirs(plot_dir, exist_ok=True)
-        outname = os.path.basename(npz_path).replace(".npz", "_lag0_fullgrid.png")
+        outname = os.path.basename(npz_path).replace(".npz", "_channelgrid.png")
         outpath = os.path.join(plot_dir, outname)
         fig.savefig(outpath, dpi=300, bbox_inches='tight')
         if logger:
