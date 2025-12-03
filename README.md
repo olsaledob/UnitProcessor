@@ -106,25 +106,3 @@ led_data = np.load("RecID-5_led.npz")
 processor = UnitProcessor(data_dict, led_data, rec_id=5, config_file="config.toml")
 processor.process_all_units()  # produces sta_export_recid_5.npz
 ```
-
-```bash
-[unit_processor]
-h5_dir = "exp_data/h5_halffield"  # Directory for spikesonly files
-led_dir = "exp_data/led_halffield" # Directory for synced led logs
-export_dir = "export"
-plot_dir = "plots"
-```
-
-To alter the evaluation behaviour, adjust the following config parameters:
-```bash
-dt = 0.01  # Timestep in seconds for STA-lags 
-save_plots = false  # Save the plots as .pdf
-max_per_row = 5  # How many lags are shown per row when plotting
-```
-
-
-
-## Be aware that...
-- because STAs are needed in new parts this structure is likely to change a lot. Especially the unit_processor and receptive_field_analysis modules will likely be reshaped or united to a newer format.
-- the config parameters and function arguments are still quite confusing and unorganized. They will be changed in the future.
-
