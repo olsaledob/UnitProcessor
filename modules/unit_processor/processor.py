@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from .config import UnitProcessorConfig
 from .logging_setup import setup_unit_logging
@@ -5,6 +6,10 @@ from .stimulus_handling import StimulusHandler
 from .export_manager import ExportManager
 from .receptive_field_analysis import RFAnalysis
 from .receptive_field_plotting import plot_sta_lags_z
+
+def ensure_dir(path):
+    """Create directory if it doesn't exist."""
+    os.makedirs(path, exist_ok=True)
 
 class UnitProcessor:
     def __init__(self, data_dict, led_data, rec_id=None, config_file='config.toml', log_level="INFO"):
@@ -40,6 +45,7 @@ class UnitProcessor:
         
         # Final save
         if self.config.export_enabled:
+            ensure_dir(self.config.export_dir)
             self.export_manager.save_npz(rec_id=self.rec_id)
 
     def process_unit(self, key):
@@ -70,6 +76,7 @@ class UnitProcessor:
         analysis.calc_sta(center=self.config.center)
 
         if self.config.plotting:
+            ensure_dir(self.config.plot_dir)
             plot_sta_lags_z(
                 analysis,
                 f"Rec-ID_{self.rec_id}_{key}",

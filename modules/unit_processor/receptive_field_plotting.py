@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from scipy.stats import norm
-from statsmodels.stats.multitest import multipletests
+
 
 def plot_sta_lags(obj, name, show_filter=True, save=False, max_per_row=10):
     """

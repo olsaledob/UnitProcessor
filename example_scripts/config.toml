@@ -22,7 +22,7 @@ log_dir = "logs"
 
 # Behaviour
 center = false
-plotting = true
+plotting = false
 apply_filters = true
 
 # RF Extras
