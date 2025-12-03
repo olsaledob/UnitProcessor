@@ -43,11 +43,11 @@ end = 1       # time steps after spike for STA
 ```
 
 2. **Plotting Settings**
-This configures some 
+Parameters for plotting functions from the receptive field plotting.
 ```toml
 [st_plotting]
 top_n = 3              # used for spike-triggered-covariance (can be ignored)
-plot_folder = "plots"  # sub-directory under plot_dir where receptive_field related functions save their results
+plot_folder = "plots"  # receptive field plotting result location
 ```
 
 3. **Unit Processor Settings**
