@@ -1,0 +1,11 @@
+name: syncenv
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - matplotlib
+  - h5py
+  - pip
+  - pip:
+      - toml

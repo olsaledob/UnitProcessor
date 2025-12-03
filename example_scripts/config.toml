@@ -27,4 +27,3 @@ apply_filters = true
 
 # RF Extras
 fraction_spikes = 1.0
-seed = 42

@@ -1,39 +1,111 @@
-# RFArduinoData
-This utilizes the framework established in [RFAnalysis](https://github.com/fschwar4/sta_analysis) and extends it to experimental data synchronized using the framework in [led-logging](https://gitlab.gwdg.de/cadler/led_logging/-/tree/refactor?ref_type=heads) which will soon be replaced by [LED_DE_Syncing](https://github.com/olsaledob/LED_DE_Syncing)
+# UnitProcessor
+The `unit_processor` package provides tools for processing and analysing spike data from experiments, particularly receptive field estimation from LED array stimuli. It utilizes the receptive field analysis framework established in [RFAnalysis](https://github.com/fschwar4/sta_analysis) and extends it to experimental data synchronized using the pipeline in [led-logging](https://gitlab.gwdg.de/cadler/led_logging/-/tree/refactor?ref_type=heads) which is subject to be replaced by [LED_DE_Syncing](https://github.com/olsaledob/LED_DE_Syncing).
 
-## Modules
-The modules employed can be found in the 'modules' folder. The main modules are
-- load_data (A helper module for loading .h5 / .hdf5 files)
-- receptive_field_analysis (used for calculating spike triggered averages (STAs))
-- receptive_field_plotting (helping module for plotting)
-- unit_processor.py (used to reshape stimulus and experimental data to be compatible with receptive field_analysis)
-
-## Usage
-To use the Unit Processor, two datasets are needed:
-1. A recordings of spikes (a *_spikesonly.h5 file)
-2. Synchronized LED timestamps (a *.npz) file
-Note that the filesnames need to contain (unique) RecIDs in order to be paired. Once this has been aquired a UnitProcessor instance can be called:
-```python
-# Load data
-data_dict = load_h5_to_dict(h5_filename)
-led_data = np.load(led_filename)
-
-# Generate the instance
-processor = UnitProcessor(data_dict, led_data, config_file=config_file, rec_id = rec_id, verbose=True, plotting=False, apply_filters=True, center = False, filename_export = f'export_RecID_{rec_id}')
-
-# Then all units can be processed
-processor.process_all_units()
+## Package Structure
 ```
-The unit processor takes the following optional agruments:
-- config_file (str): Containing additional run-time parameters. This is needed but by default the included 'config.toml' is used.
-- rec_id (int): Rec_ID used for naming files
-- verbose (bool): Determines logging level
-- center (bool): If true, an additional centering step is performed. Note: numpy already centers, this then centers once too often
-- apply_filters (bool): If true, additional filters can be activated, which currently include exluding all recordings with less than 500 spikes.
-- plotting (bool): If true, STA plots are shown. Used to speed up processing if only the exported STAs are important
-- filename_export (str): Alternating filename for exported STA files.
+unit_processor/
+├── __init__.py
+├── config.py            # Config dataclass
+├── logging_utils.py     # Sets up an overarching logger
+├── stimulus.py          # Unpacks and reshapes stimulus
+├── processor.py         # Main processing class
+├── data_loader.py       # Loading function for HDF5 spike data
+├── export_manager.py    # ExportManager for saving STA results
+├── plotting.py          # Additional plotting functions
+```
 
-Example scripts are located in the 'example_scripts' folder. The jupyter-notebook "analysis.ipynb" demonstrates how to use the unit-processor as described above. Please note that you will have to set the following parameters in the 'config.toml'. Otherwise the code will **not** work on your machine. All folders need to be present, the code does not yet create them by itself.
+## Setup
+
+### Creating the Environment
+You can set up the environment with Conda/Miniforge or pip.
+
+**Option 1: Conda/Miniforge**
+```bash
+conda env create -f environment.yml
+conda activate syncenv
+```
+
+**Option 2: pip**
+```bash
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+### Setting up the config
+The `config.toml` file controls all paths, processing parameters, logging behaviour, and analysis options
+
+1. **Spike-Triggered Calculation Window**
+This section defines the temporal window around each spike for calculating the spike‐triggered average (STA).
+```toml
+[st_calculation]
+start = -9    # time steps before spike for STA
+end = 1       # time steps after spike for STA
+```
+
+2. **Plotting Settings**
+This configures some 
+```toml
+[st_plotting]
+top_n = 3              # used for spike-triggered-covariance (can be ignored)
+plot_folder = "plots"  # sub-directory under plot_dir where receptive_field related functions save their results
+```
+
+3. **Unit Processor Settings**
+This section then defines all parameters necessary for the unit processor.
+```toml
+[unit_processor]
+# Processing parameters
+dt = 0.01               # bin size in seconds; defines time-step size for start and end parameters [st_calculation]
+save_plots = true       # save generated plots to disk
+max_per_row = 5         # max STA plots per row in combined figure
+export_enabled = true   # enable exporting STA results
+
+# Paths
+h5_dir = "exp_data/h5_halffield"    # directory containing .h5 spike data
+led_dir = "exp_data/led_halffield"  # directory containing LED .npz/.h5 files
+export_dir = "export"               # where STA export files (.npz) are saved
+plot_dir = "plots"                  # where plots are saved
+log_dir = "logs"                    # log files for each run
+
+# Analysis options
+center = true           # center STA calculation in receptive-field analysis
+plotting = true         # enable STA plotting
+apply_filters = true    # skip channels with insufficient spikes or poor RF response
+
+# Extra analysis parameters
+fraction_spikes = 1.0   # fraction of spikes used in analysis (1.0 = all)
+```
+
+### Recommended Project Layout
+```
+project_root/
+├── modules/
+│   └── unit_processor/...
+├── exp_data/
+│   ├── h5_data/           # spike data files (.h5)
+│   └── led_data/          # LED pattern files (.npz/.h5)
+├── export/                # STA export outputs
+├── plots/                 # Plot outputs
+├── logs/                  # Log files
+├── script.ipynb (or .py)  # own scripts
+├── config.toml
+├── requirements.txt
+└── environment.yml
+```
+
+## Example Usage
+The usage for a single recording is straight forward. If you want to process multiple files in batch please find the `example.ipynb` in `example_scripts`.
+### Single Recording
+```python
+import numpy as np
+from unit_processor import load_h5_to_dict, UnitProcessor
+
+data_dict = load_h5_to_dict("RecID-5_spikesonly.h5")
+led_data = np.load("RecID-5_led.npz")
+
+processor = UnitProcessor(data_dict, led_data, rec_id=5, config_file="config.toml")
+processor.process_all_units()  # produces sta_export_recid_5.npz
+```
 
 ```bash
 [unit_processor]
