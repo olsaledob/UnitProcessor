@@ -9,6 +9,11 @@ def setup_unit_logging(log_dir: str, log_level: str = "INFO") -> logging.Logger:
     log_file = os.path.join(log_dir, f"unitproc_log_{timestamp}.log")
 
     logger = logging.getLogger("unit_processor")
+
+    # Clear old handlers to avoid duplicates
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
     logger.setLevel(getattr(logging, log_level.upper()))
 
     fmt = logging.Formatter(
@@ -20,14 +25,14 @@ def setup_unit_logging(log_dir: str, log_level: str = "INFO") -> logging.Logger:
     ch.setLevel(getattr(logging, log_level.upper()))
     ch.setFormatter(fmt)
 
-    fh = logging.FileHandler(log_file, mode='w')
+    fh = logging.FileHandler(log_file, mode="w")
     fh.setLevel(getattr(logging, log_level.upper()))
     fh.setFormatter(fmt)
 
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    logger.info("Unit Processor logging initialised")
+    logger.info("Logging initialised")
     logger.info(f"Log file: {log_file}")
     logger.info(f"Log level: {log_level}")
 

@@ -8,7 +8,6 @@ from .receptive_field_analysis import RFAnalysis
 from .receptive_field_plotting import plot_sta_lags_z
 
 def ensure_dir(path):
-    """Create directory if it doesn't exist."""
     os.makedirs(path, exist_ok=True)
 
 class UnitProcessor:
@@ -57,20 +56,36 @@ class UnitProcessor:
             stimulus_mask |= (spike_times >= start) & (spike_times < end)
 
         spikes_in_stim = spike_times[stimulus_mask]
+
         if self.config.fraction_spikes < 1.0:
             n_keep = int(np.floor(len(spikes_in_stim) * self.config.fraction_spikes))
             if n_keep < 1:
-                self.logger.info(f"{key} skipped → fraction too small")
+                self.logger.info(f"{key} skipped -> fraction too small")
                 return
             if self.config.seed is not None:
                 np.random.seed(self.config.seed)
             spikes_in_stim = np.random.choice(spikes_in_stim, size=n_keep, replace=False)
             spikes_in_stim.sort()
 
-        if len(spikes_in_stim) <= 1:
-            self.logger.info(f"No spikes in stim periods for {key} → skipped")
+        # Filtering
+        n_spikes_in_window = len(spikes_in_stim)
+        if n_spikes_in_window <= 1:
+            self.logger.info(f"No spikes in stim periods for {key} -> skipped")
             return
 
+        if n_spikes_in_window < self.config.min_spikes_in_window:
+            self.logger.info(f"Skipping {key}: only {n_spikes_in_window} spikes during stimulus (min {self.config.min_spikes_in_window})")
+            return
+
+        # Firing rates
+        inside_duration = sum(end - start for start, end in self.stim_blocks)
+        spikes_outside_stim = spike_times[~stimulus_mask]
+        outside_duration = (max(spike_times) - min(spike_times)) - inside_duration
+
+        firing_rate_inside = n_spikes_in_window / inside_duration if inside_duration > 0 else 0
+        firing_rate_outside = len(spikes_outside_stim) / outside_duration if outside_duration > 0 else 0
+
+        # STA
         spike_train = np.histogram(spikes_in_stim, bins=self.bin_edges)[0]
         analysis = RFAnalysis(self.stimulus, spike_train, np.zeros((16, 16)), 'CL')
         analysis.calc_sta(center=self.config.center)
@@ -89,5 +104,8 @@ class UnitProcessor:
         self.export_manager.add_record(
             rec_id=self.rec_id,
             channel=str(key),
-            sta_array=analysis.sta_z
+            sta_array=analysis.sta_z,
+            lag_start=self.config.lag_start,
+            firing_rate_inside=firing_rate_inside,
+            firing_rate_outside=firing_rate_outside
         )

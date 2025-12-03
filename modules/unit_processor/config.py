@@ -20,7 +20,13 @@ class UnitProcessorConfig:
     # Processing behaviour
     center: bool
     plotting: bool
-    apply_filters: bool
+
+    # Filtering
+    min_spikes_in_window: int
+
+    # STA Parameters
+    lag_start: int
+    lag_end: int
 
     # Optional parameters for receptive-field analysis
     fraction_spikes: float
@@ -31,6 +37,7 @@ class UnitProcessorConfig:
         cfg = toml.load(toml_path)
 
         up_cfg = cfg["unit_processor"]
+        st_calc = cfg.get("st_calculation", {})
 
         return cls(
             dt=float(up_cfg.get("dt", 0.01)),
@@ -46,8 +53,13 @@ class UnitProcessorConfig:
 
             center=bool(up_cfg.get("center", True)),
             plotting=bool(up_cfg.get("plotting", True)),
-            apply_filters=bool(up_cfg.get("apply_filters", False)),
+
+            min_spikes_in_window=int(up_cfg.get("min_spikes_in_window", 1)),
 
             fraction_spikes=float(up_cfg.get("fraction_spikes", 1.0)),
-            seed=(int(up_cfg["seed"]) if up_cfg.get("seed") else None)
+            seed=(int(up_cfg["seed"]) if up_cfg.get("seed") else None),
+
+            lag_start=int(st_calc.get("start", 0)),
+            lag_end=int(st_calc.get("end", 0))
+
         )

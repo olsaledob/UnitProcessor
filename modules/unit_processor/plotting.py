@@ -2,32 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_channels_rasterplot(data_dict, stim_blocks, led_timestamps, channel_list,
-                             rec_id=None, save_plots=False, plot_dir="./plots", logger=None):
-    """
-    Plot multiple channels' spike events together in a single raster/eventplot.
-    This function reproduces the old UnitProcessor.plot_channels_rasterplot behaviour.
-
-    Parameters
-    ----------
-    data_dict : dict
-        Dictionary mapping channel keys to numpy arrays of spike times (in seconds).
-    stim_blocks : list of tuples
-        Each tuple (start, end) defines a stimulus window in seconds.
-    led_timestamps : numpy.ndarray
-        LED timestamps (seconds).
-    channel_list : list of str
-        List of channel keys from data_dict to include in the plot.
-    rec_id : int or str, optional
-        Recording ID used for the saved filename.
-    save_plots : bool
-        If True, save the plot as PNG in plot_dir.
-    plot_dir : str
-        Directory where plots are saved if save_plots is True.
-    logger : logging.Logger or None
-        Optional logger for warnings/info.
-    """
-
+def plot_channels_rasterplot(data_dict, stim_blocks, led_timestamps, channel_list, rec_id=None, save_plots=False, plot_dir="./plots", logger=None):
     fig_height = max(2, len(channel_list) * 0.6)  # dynamic height
     plt.figure(figsize=(10, fig_height))
     plt.rcParams.update({
@@ -111,3 +86,92 @@ def plot_channels_rasterplot(data_dict, stim_blocks, led_timestamps, channel_lis
             logger.info(f"Saved multi-channel eventplot to {outpath}")
 
     plt.show()
+
+def plot_sta_grid_lag0(npz_path, save_plots=False, plot_dir="./plots", logger=None, significance_thresh=0.2):
+    cmap = 'seismic'
+    vmin, vmax = -3, 3
+
+    data = np.load(npz_path)
+    channels = np.array(data["Channel"], dtype=str)
+    stas = data["STA"]
+    lags = data["Lag"]
+
+    cols = range(1, 9)      # 1..8
+    rows = range(8, 0, -1)  # 8..1
+
+    n_rows = len(rows)
+    n_cols = len(cols)
+
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(1.8*n_cols, 1.8*n_rows))
+    axs = np.array(axs).reshape(n_rows, n_cols)
+    fig.subplots_adjust(wspace=0.05, hspace=0.05)
+
+    # Define corners for annotation
+    corner_labels = {
+        (0, 0): "Channel_81",
+        (0, n_cols-1): "Channel_88",
+        (n_rows-1, 0): "Channel_11",
+        (n_rows-1, n_cols-1): "Channel_18"
+    }
+
+    for r_idx, r in enumerate(rows):
+        for c_idx, c in enumerate(cols):
+            base_ch = f"Channel_{r}{c}"
+            ax = axs[r_idx, c_idx]
+
+            unit_mask = np.array([(ch.startswith(base_ch + "_") and lag == 0)
+                                  for ch, lag in zip(channels, lags)])
+            unit_indices = np.where(unit_mask)[0]
+
+            if len(unit_indices) == 0:
+                _draw_empty_box(ax)
+            else:
+                # Select most significant unit (max abs z)
+                max_val = -np.inf
+                chosen_sta = None
+                for idx in unit_indices:
+                    sta_arr = stas[idx]
+                    abs_max = np.max(np.abs(sta_arr))
+                    if abs_max > max_val:
+                        max_val = abs_max
+                        chosen_sta = sta_arr
+                if chosen_sta is None or max_val < significance_thresh:
+                    _draw_empty_box(ax)
+                else:
+                    im = ax.imshow(chosen_sta, vmin=vmin, vmax=vmax, cmap=cmap)
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+
+            # Add corner note if this subplot is in the corner mapping
+            if (r_idx, c_idx) in corner_labels:
+                ax.text(0.05, 0.05, corner_labels[(r_idx, c_idx)],
+                        transform=ax.transAxes,
+                        fontsize=8, fontweight="bold",
+                        color="black", ha="left", va="bottom",
+                        bbox=dict(facecolor="white", edgecolor="none", alpha=0.6, pad=1))
+
+    # Shared colorbar
+    cbar = fig.colorbar(im, ax=axs.ravel(), shrink=0.6)
+    cbar.set_label("Z-score")
+
+    if save_plots:
+        os.makedirs(plot_dir, exist_ok=True)
+        outname = os.path.basename(npz_path).replace(".npz", "_lag0_fullgrid.png")
+        outpath = os.path.join(plot_dir, outname)
+        fig.savefig(outpath, dpi=300, bbox_inches='tight')
+        if logger:
+            logger.info(f"Saved STA lag0 full grid plot to {outpath}")
+
+    plt.show()
+
+
+def _draw_empty_box(ax):
+    """Draw an empty square box."""
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_facecolor("white")
+    for spine in ax.spines.values():
+        spine.set_edgecolor("black")
+        spine.set_linewidth(1.0)
+    # Blank image so squares are uniform size
+    ax.imshow(np.zeros((16, 16)), vmin=0, vmax=0, cmap="Greys")

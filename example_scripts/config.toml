@@ -13,6 +13,14 @@ save_plots = false
 max_per_row = 5
 export_enabled = true
 
+# Behaviour
+center = false
+plotting = false
+
+
+# Filter criteria
+min_spikes_in_window = 500
+
 # Paths
 h5_dir = "exp_data/h5_halffield"
 led_dir = "exp_data/led_halffield"
@@ -20,10 +28,7 @@ export_dir = "export"
 plot_dir = "plots"  # used for all plots during unit_processor
 log_dir = "logs"
 
-# Behaviour
-center = false
-plotting = false
-apply_filters = true
+
 
 # RF Extras
 fraction_spikes = 1.0

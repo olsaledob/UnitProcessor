@@ -93,16 +93,38 @@ project_root/
 └── environment.yml
 ```
 
-## Example Usage
-The usage for a single recording is straight forward. If you want to process multiple files in batch please find the `example.ipynb` in `example_scripts`.
-### Single Recording
+## Examples
+
+### Using UnitProcessor
+The usage for a single recording is straight forward.
+
 ```python
 import numpy as np
 from unit_processor import load_h5_to_dict, UnitProcessor
 
+# Load spike recordings from HDF5 file
 data_dict = load_h5_to_dict("RecID-5_spikesonly.h5")
+
+# Load LED stimulus data from NPZ file
 led_data = np.load("RecID-5_led.npz")
 
+# Create and run UnitProcessor for one recording (RecID=5)
 processor = UnitProcessor(data_dict, led_data, rec_id=5, config_file="config.toml")
 processor.process_all_units()  # produces sta_export_recid_5.npz
 ```
+
+If you want to process multiple files in batch, please find the `example.ipynb` or use `batch_process.py` from `example_scripts` using a basic call:
+
+```bash
+python batch_process.py
+```
+Note that setting `plotting` to `true` in your configuration file will cause a plot to be opened after a channel has been processed, which has to be closed in order for the script to continue. Therefore, to automatically process all files please set the parameter to `false`. 
+
+### Visualizing STAs in the Channel Grid
+Using the script `channel_plot.py` in `example_scripts`, you can plot the STA for all channels in their physical layout at `Lag=0` = Spiketime.
+
+```bash
+python channel_plot.py
+```
+
+In case you want to extend or alter the plot, this script uses the function `plot_sta_grid_lag0` from the `plotting.py` module. 
