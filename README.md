@@ -43,7 +43,7 @@ end = 1       # time steps after spike for STA
 ```
 
 2. **Plotting Settings**
-Parameters for plotting functions from the receptive field plotting.
+This section defines parameters for plotting functions from the receptive field plotting.
 ```toml
 [st_plotting]
 top_n = 3              # used for spike-triggered-covariance (can be ignored)
