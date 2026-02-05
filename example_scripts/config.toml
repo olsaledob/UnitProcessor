@@ -22,9 +22,9 @@ plotting = false
 min_spikes_in_window = 500
 
 # Paths
-h5_dir = "exp_data/h5_halffield"
-led_dir = "exp_data/led_halffield"
-export_dir = "export"
+h5_dir = "exp_data/h5_halffield"  # spike-data (usually something with spikes_only)
+led_dir = "exp_data/led_halffield"  # directory of synced .npz led data
+export_dir = "export"  # where the numerical STA values should be saved
 plot_dir = "plots"  # used for all plots during unit_processor
 log_dir = "logs"
 
