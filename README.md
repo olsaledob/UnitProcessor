@@ -61,7 +61,7 @@ max_per_row = 5         # max STA plots per row in combined figure
 export_enabled = true   # enable exporting STA results
 
 # Paths
-h5_dir = "exp_data/h5_halffield"    # directory containing .h5 spike data
+h5_dir = "exp_data/h5_halffield"    # directory containing .h5 spike data (usually spikes_only files)
 led_dir = "exp_data/led_halffield"  # directory containing LED .npz/.h5 files
 export_dir = "export"               # where STA export files (.npz) are saved
 plot_dir = "plots"                  # where plots are saved
