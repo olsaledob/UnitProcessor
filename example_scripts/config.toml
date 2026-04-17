@@ -1,5 +1,5 @@
 [st_calculation]
-start = -9
+start = -5
 end = 1
 
 [st_plotting]
@@ -17,13 +17,16 @@ export_enabled = true
 center = false
 plotting = false
 
-
 # Filter criteria
-min_spikes_in_window = 500
+min_spikes_in_window = 100
+
+# Trimming Parameters
+trim_window_mins = 60
+trim_ends = "both" # which end do you want; "first", "last", or "both"?
 
 # Paths
-h5_dir = "exp_data/h5_halffield"  # spike-data (usually something with spikes_only)
-led_dir = "exp_data/led_halffield"  # directory of synced .npz led data
+h5_dir = "exp_data/h5_correlated"  # spike-data (usually something with spikes_only)
+led_dir = "exp_data/led_correlated"  # directory of synced .npz led data
 export_dir = "export"  # where the numerical STA values should be saved
 plot_dir = "plots"  # used for all plots during unit_processor
 log_dir = "logs"

@@ -45,7 +45,7 @@ class UnitProcessor:
         # Final save
         if self.config.export_enabled:
             ensure_dir(self.config.export_dir)
-            self.export_manager.save_npz(rec_id=self.rec_id)
+            self.export_manager.save_npz(rec_id=self.rec_id, dt=self.config.dt)
 
     def process_unit(self, key):
         self.logger.info(f"Processing Unit {key}")
@@ -107,5 +107,7 @@ class UnitProcessor:
             sta_array=analysis.sta_z,
             lag_start=self.config.lag_start,
             firing_rate_inside=firing_rate_inside,
-            firing_rate_outside=firing_rate_outside
+            firing_rate_outside=firing_rate_outside,
+            spike_count=n_spikes_in_window,
+            stim_duration=inside_duration
         )

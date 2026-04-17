@@ -42,6 +42,7 @@ export_manager = ExportManager(export_dir=config.export_dir, logger=logger, enab
 
 # Loop over RecIDs and process
 for rec_id in common_rec_ids:
+    export_manager.records = []
     h5_filename = h5_files[rec_id]
     led_filename = led_files[rec_id]
 
@@ -53,7 +54,7 @@ for rec_id in common_rec_ids:
     data_dict = load_h5_to_dict(h5_filename)
 
     # Load LED pattern data (npz!!)
-    led_data = np.load(led_filename)
+    led_data = np.load(led_filename, allow_pickle=True)
 
     # Run analysis for this RecID — pass shared export manager
     processor = UnitProcessor(
