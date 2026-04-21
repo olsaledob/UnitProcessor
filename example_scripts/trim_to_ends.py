@@ -33,6 +33,12 @@ def extract_rec_id(filename: str):
     m = re.search(r"RecID-(\d+)", filename)
     return int(m.group(1)) if m else None
 
+def extract_p(filename):
+    m = re.search(r'(?:poisson|pois)(\d+)', filename)
+    if m:
+        return int(m.group(1)) / 100
+    raise ValueError("No poisson probability found")
+
 def slice_led_npz_by_time(led_npz: np.lib.npyio.NpzFile, t_start_us: int, t_end_us: int) -> dict:
     """Return a dict with the same keys as the NPZ, but only entries whose timestamps are within [t_start_us, t_end_us]."""
     if "timestamps" not in led_npz:
@@ -96,6 +102,8 @@ def main():
         logger.info(f"H5 file:  {os.path.basename(h5_filename)}")
         logger.info(f"LED file: {os.path.basename(led_filename)}")
 
+        light_prob = extract_p(os.path.basename(led_filename))
+        logger.info(f"Light Probability: {light_prob}")
         # spike, led load
         data_dict = load_h5_to_dict(h5_filename)
         led_npz = np.load(led_filename, allow_pickle=True)
@@ -116,8 +124,7 @@ def main():
             logger.info(f"RecID {rec_id}: first [{first_start}, {first_end}] -> {len(led_first['timestamps'])} LED events")
 
             export_first.records = []
-            proc_first = UnitProcessor(data_dict=data_dict, led_data=led_first, rec_id=rec_id,
-                                       config_file=CONFIG_FILE, log_level="INFO")
+            proc_first = UnitProcessor(data_dict=data_dict, led_data=led_first, rec_id=rec_id, light_prob=light_prob, config_file=CONFIG_FILE, log_level="INFO")
             proc_first.export_manager = export_first
             proc_first.process_all_units()
 
@@ -128,8 +135,7 @@ def main():
             logger.info(f"RecID {rec_id}: last  [{last_start}, {last_end}] -> {len(led_last['timestamps'])} LED events")
 
             export_last.records = []
-            proc_last = UnitProcessor(data_dict=data_dict, led_data=led_last, rec_id=rec_id,
-                                      config_file=CONFIG_FILE, log_level="INFO")
+            proc_last = UnitProcessor(data_dict=data_dict, led_data=led_last, rec_id=rec_id, light_prob=light_prob, config_file=CONFIG_FILE, log_level="INFO")
             proc_last.export_manager = export_last
             proc_last.process_all_units()
 

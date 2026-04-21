@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 from .config import UnitProcessorConfig
 from .logging_setup import setup_unit_logging
@@ -10,13 +11,14 @@ from .receptive_field_plotting import plot_sta_lags_z
 def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
+
 class UnitProcessor:
-    def __init__(self, data_dict, led_data, rec_id=None, config_file='config.toml', log_level="INFO"):
+    def __init__(self, data_dict, led_data, rec_id=None, light_prob=None, config_file='config.toml', log_level="INFO"):
         # Load config and logger
         self.config = UnitProcessorConfig.load(config_file)
         self.logger = setup_unit_logging(self.config.log_dir, log_level)
         self.rec_id = rec_id
-
+        self.light_prob = light_prob
         # Store spike data
         self.data_dict = data_dict
 
@@ -30,13 +32,56 @@ class UnitProcessor:
         self.stim_blocks = stim_handler.stim_blocks
         self.bin_edges = stim_handler.bin_edges
         self.stimulus = stim_handler.generate_stimulus()
-
+        self.stimulus_statistics()
+        
         # Export manager
         self.export_manager = ExportManager(
             export_dir=self.config.export_dir,
             logger=self.logger,
             enabled=self.config.export_enabled
         )
+
+    def stimulus_statistics(self, rta_draws=10000):
+        stim = self.stimulus
+
+        mean_emp = stim.mean()
+        std_emp = stim.std(ddof=1)
+
+        p = self.light_prob
+        std_theory = None
+        rta_mean = None
+        rta_std = None
+        rta_error = None
+
+        if p is not None:
+            std_theory = np.sqrt(p * (1 - p))
+
+        try:
+            rng = np.random.default_rng()
+            T = stim.shape[2]
+
+            idx = rng.choice(T, size=rta_draws, replace=True)
+            rta_frames = stim[:, :, idx]
+
+            rta = rta_frames.mean(axis=2)
+
+            rta_mean = rta.mean()
+            rta_std = rta_frames.std(ddof=1)
+
+        except Exception as e:
+            rta_error = str(e)
+
+        msg = f"Stimulus stats: mean={mean_emp:.4f}, empirical_std={std_emp:.4f}"
+
+        if p is not None:
+            msg += f", theoretical_std={std_theory:.4f}, p={p}"
+
+        if rta_error is None:
+            msg += f", rta_mean={rta_mean:.4f}, rta_std={rta_std:.4f} (draws={rta_draws})"
+        else:
+            msg += f", rta_failed={rta_error}"
+
+        self.logger.info(msg)
 
     def process_all_units(self):
         for key in self.data_dict.keys():
@@ -87,7 +132,7 @@ class UnitProcessor:
 
         # STA
         spike_train = np.histogram(spikes_in_stim, bins=self.bin_edges)[0]
-        analysis = RFAnalysis(self.stimulus, spike_train, np.zeros((16, 16)), 'CL')
+        analysis = RFAnalysis(self.stimulus, spike_train, np.zeros((16, 16)), 'CL', p=self.light_prob)
         analysis.calc_sta(center=self.config.center)
 
         if self.config.plotting:

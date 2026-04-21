@@ -17,12 +17,19 @@ start = config.dt  # or config.start from st_calculation if needed
 h5_dir = config.h5_dir
 led_dir = config.led_dir
 
-# Extract RecID from filename
+# Extract RecID & Light Probability from filename
 def extract_rec_id(filename):
     match = re.search(r"RecID-(\d+)", filename)
     if match:
         return int(match.group(1))
     return None
+
+def extract_p(filename):
+    m = re.search(r'(?:poisson|pois)(\d+)', filename)
+    if m:
+        return int(m.group(1)) / 100
+    raise ValueError("No poisson probability found")
+
 
 # Match files by RecID
 h5_files = {extract_rec_id(f): os.path.join(h5_dir, f)
@@ -50,6 +57,8 @@ for rec_id in common_rec_ids:
     logger.info(f"H5 file:  {os.path.basename(h5_filename)}")
     logger.info(f"LED file: {os.path.basename(led_filename)}")
 
+    light_prob = extract_p(os.path.basename(led_filename))
+    logger.info(f"Light Probability: {light_prob}")
     # Load spike data
     data_dict = load_h5_to_dict(h5_filename)
 
@@ -61,6 +70,7 @@ for rec_id in common_rec_ids:
         data_dict=data_dict,
         led_data=led_data,
         rec_id=rec_id,
+        light_prob=light_prob,
         config_file=config_file,
         log_level="INFO"
     )

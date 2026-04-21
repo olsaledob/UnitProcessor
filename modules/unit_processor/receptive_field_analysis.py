@@ -52,7 +52,7 @@ class RFAnalysis:
         After construction call calc_sta_and_stc to fill the result fields.
     """
 
-    def __init__(self, stimulus, spike_train, filter, analysis_type = None, config_file:str='config.toml'):
+    def __init__(self, stimulus, spike_train, filter, analysis_type = None, config_file:str='config.toml', p=None):
         """
         Initialize the RFAnalysis class with stimulus, spike_train, filter, analysis type and configuration file. Analysis type can be 'CL' (Cross-lag) or 'LS' (Lag-separate).
         """
@@ -71,6 +71,7 @@ class RFAnalysis:
         self.spike_train = spike_train
         self.filter = filter
         self.analysis_type = analysis_type
+        self.p = p
 
         # Derive parameters
         self.h = stimulus.shape[0]  # height
@@ -307,13 +308,29 @@ class RFAnalysis:
             self.sta = self.X_st.mean(axis=1)
             self.sta = self.sta.reshape(self.h, self.w, self.n_lags)
             
-            raw_std  = self.X_raw.std(axis=1, ddof=1).reshape(self.h, self.w, self.n_lags)
-            raw_mean = self.X_raw.mean(axis=1).reshape(self.h, self.w, self.n_lags)
 
-            if center:    
-                self.sta = self.sta - raw_mean
+            # if we have an actual probabiltiy, use bernoulli:
+            if self.p != None:
+                if center:    
+                    self.sta = self.sta - self.p
             
-            self.sta_z = (self.sta - raw_mean) / raw_std
+                                
+                # bernoulli normalized
+                # the name sta_z is kept, because other code/plotting scripts use it
+                std = np.sqrt(self.p * (1-self.p))
+                self.sta_z = (self.sta) / std
+
+            else:
+                raw_std  = self.X_raw.std(axis=1, ddof=1).reshape(self.h, self.w, self.n_lags)
+                raw_mean = self.X_raw.mean(axis=1).reshape(self.h, self.w, self.n_lags)
+
+                if center:    
+                    self.sta = self.sta - raw_mean
+            
+                # z-scored
+                self.sta_z = self.sta / raw_std
+
+
 
         elif self.analysis_type == 'LS':
             D, _, L = self.X_raw.shape

@@ -124,7 +124,7 @@ def plot_unit_by_source(u, sources_in_order, max_per_row=10, vmin=-3, vmax=3, cm
             c = (i % n_cols_global)
             ax = axes[r, c]
             ax.axis("on")
-            im = ax.imshow(stas[i], vmin=vmin, vmax=vmax, cmap=cmap, origin="lower")
+            im = ax.imshow(stas[i], vmin=vmin, vmax=vmax, cmap=cmap)
             ax.set_title(f"Lag {lags[i]}", fontsize=9)
             ax.set_xticks([])
             ax.set_yticks([])

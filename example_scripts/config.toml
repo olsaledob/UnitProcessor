@@ -9,12 +9,13 @@ plot_folder = "plots"  # directory for all plots using RF-plotting
 [unit_processor]
 # Processing
 dt = 0.01
+light_probability = 0.08
 save_plots = false
 max_per_row = 5
 export_enabled = true
 
 # Behaviour
-center = false
+center = true
 plotting = false
 
 # Filter criteria
@@ -30,7 +31,6 @@ led_dir = "exp_data/led_correlated"  # directory of synced .npz led data
 export_dir = "export"  # where the numerical STA values should be saved
 plot_dir = "plots"  # used for all plots during unit_processor
 log_dir = "logs"
-
 
 
 # RF Extras
