@@ -47,6 +47,20 @@ class UnitProcessor:
         mean_emp = stim.mean()
         std_emp = stim.std(ddof=1)
 
+        # remove fully dark frames
+        frame_sum = stim.sum(axis=(0,1))
+        mask_nonzero = frame_sum > 0
+        stim_nodark = stim[:,:,mask_nonzero]
+
+        n_dark = np.sum(~mask_nonzero)
+        n_non_dark = np.sum(mask_nonzero)
+        dark_ratio = n_dark / (n_dark + n_non_dark) if (n_dark + n_non_dark) > 0 else np.nan
+
+        mean_nodark = stim_nodark.mean() if stim_nodark.size > 0 else np.nan
+        std_nodark = stim_nodark.std(ddof=1) if stim_nodark.size > 0 else np.nan
+
+
+
         p = self.light_prob
         std_theory = None
         rta_mean = None
@@ -89,6 +103,10 @@ class UnitProcessor:
 
         self.logger.info(f"Stimulus mean (empirical): {mean_emp:.6f}")
         self.logger.info(f"Stimulus std (empirical): {std_emp:.6f}")
+
+        self.logger.info(f"Stimulus mean (no dark frames): {mean_nodark:.6f}")
+        self.logger.info(f"Stimulus std (no dark frames): {std_nodark:.6f}")
+        self.logger.info(f"Dark frames: {n_dark} / {n_dark+n_non_dark} (ratio={dark_ratio:.6f})")
 
         if p is not None:
             self.logger.info(f"Stimulus std (theoretical Bernoulli): {std_theory:.6f}  [p={p}]")
