@@ -56,6 +56,7 @@ class UnitProcessor:
         if p is not None:
             std_theory = np.sqrt(p * (1 - p))
 
+        # RTA
         try:
             rng = np.random.default_rng()
             T = stim.shape[2]
@@ -71,17 +72,43 @@ class UnitProcessor:
         except Exception as e:
             rta_error = str(e)
 
-        msg = f"Stimulus stats: mean={mean_emp:.4f}, empirical_std={std_emp:.4f}"
+        # consecutive on frames
+        consecutive_on = np.mean(stim[:, :, 1:] * stim[:, :, :-1])
 
         if p is not None:
-            msg += f", theoretical_std={std_theory:.4f}, p={p}"
+            expected_consecutive = p ** 2
+        else:
+            expected_consecutive = mean_emp ** 2
+
+        # pattern sequence blocks
+        frames = stim.reshape(-1, stim.shape[2]).T  # (T, pixels)
+
+        unique_frames = np.unique(frames, axis=0).shape[0]
+        total_frames = frames.shape[0]
+        repeat_ratio = unique_frames / total_frames
+
+        self.logger.info(f"Stimulus mean (empirical): {mean_emp:.6f}")
+        self.logger.info(f"Stimulus std (empirical): {std_emp:.6f}")
+
+        if p is not None:
+            self.logger.info(f"Stimulus std (theoretical Bernoulli): {std_theory:.6f}  [p={p}]")
 
         if rta_error is None:
-            msg += f", rta_mean={rta_mean:.4f}, rta_std={rta_std:.4f} (draws={rta_draws})"
+            self.logger.info(
+                f"RTA stats: mean={rta_mean:.6f}, std={rta_std:.6f}  (draws={rta_draws})"
+            )
         else:
-            msg += f", rta_failed={rta_error}"
+            self.logger.info(f"RTA computation failed: {rta_error}")
 
-        self.logger.info(msg)
+        self.logger.info(
+            f"Consecutive ON probability: {consecutive_on:.6f}  "
+            f"(expected if independent: {expected_consecutive:.6f})"
+        )
+
+        self.logger.info(
+            f"Unique stimulus frames: {unique_frames} / {total_frames} "
+            f"(repeat_ratio={repeat_ratio:.6f})"
+        )
 
     def process_all_units(self):
         for key in self.data_dict.keys():
