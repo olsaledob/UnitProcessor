@@ -128,6 +128,17 @@ class UnitProcessor:
             f"(repeat_ratio={repeat_ratio:.6f})"
         )
 
+        if mean_nodark > 0:
+            self.light_prob = mean_nodark
+            self.logger.info(f"Using mean of non-dark frames for light probability: {self.light_prob:.6f}")
+        
+        elif mean_emp > 0:
+            self.light_prob = mean_emp
+            self.logger.info(f"Using mean of all frames for light probability: {self.light_prob:.6f}")
+        else:
+            self.logger.info(f"No empirical value could be estimated, using light probability taken from filename: {self.light_prob:.6f}")
+
+
     def process_all_units(self):
         for key in self.data_dict.keys():
             self.process_unit(key)
