@@ -1,21 +1,23 @@
 [st_calculation]
-start = -5
-end = 1
+# These parameters define the RFAnalysis parameters in the discretized (binned) framework.
+start = -5  # inclusive (e.g. first calculated lag is -5 if set to -5)
+end = 1  # exclusive (e.g. last calculated lag is 0 if set to 1)
 
 [st_plotting]
 top_n = 3  # Number of top-eigenvectors to be plotted
 plot_folder = "plots"  # directory for all plots using RF-plotting
 
 [unit_processor]
+# These parameters determine how a Unit Processor Instance converts experimental data into the binned RFAnalysis framework
 # Processing
-dt = 0.01
-light_probability = 0.08
-save_plots = false
-max_per_row = 5
-export_enabled = true
+dt = 0.01  # seconds
+light_probability = 0.08  # default light_probability assumed when average coverage cannot be calculated from data
+save_plots = false  # whether the RFAnalysis instances called within a unit processor should save their own plots
+max_per_row = 5  # display settings for the RFAnalysis plots
+export_enabled = true  # if true, saves the calculated STAs
 
 # Behaviour
-center = true
+center = true  # STA centering
 plotting = false
 
 # Filter criteria
@@ -35,3 +37,16 @@ log_dir = "logs"
 
 # RF Extras
 fraction_spikes = 1.0
+
+[coverage_splitting]
+# Used for splitting synced LED Data into multiple subfiles depending on their light-coverage
+
+# Mode
+threshold = 1000000  # Pause length between blocks in nanoseconds
+rounding_decimals = 2  # How many decimal digits the coverage should be rounded to (e.g. 2 -> 0.08 / 0.25)
+mode = ""  # placeholder
+
+# Paths
+npz_dir = "exp_data/led_frozen_noise"  # sorted stimulus data (*.npz)
+export_dir = "export"  # where the splitted npzs should be saved
+
