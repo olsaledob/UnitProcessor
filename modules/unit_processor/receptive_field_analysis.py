@@ -309,16 +309,42 @@ class RFAnalysis:
             self.sta = self.sta.reshape(self.h, self.w, self.n_lags)
             
 
-            # if we have an actual probabiltiy, use bernoulli:
-            if self.p != None:
-                if center:    
-                    self.sta = self.sta - self.p
+            # # if we have an actual probabiltiy, use bernoulli:
+            # if self.p != None:
+            #     if center:    
+            #         self.sta = self.sta - self.p
             
                                 
-                # bernoulli normalized
-                # the name sta_z is kept, because other code/plotting scripts use it
-                std = np.sqrt(self.p * (1-self.p))
-                self.sta_z = (self.sta) / std
+            #     # bernoulli normalized
+            #     # the name sta_z is kept, because other code/plotting scripts use it
+            #     std = np.sqrt(self.p * (1-self.p))
+            #     self.sta_z = (self.sta) / std
+
+            N_spk = self.X_st.shape[1]
+
+            sta_vec = self.X_st.mean(axis=1)
+
+            if self.p is not None:
+                raw_mean = np.full_like(sta_vec, self.p, dtype=float)
+                raw_std = np.full_like(sta_vec, np.sqrt(self.p * (1 - self.p)), dtype=float)
+            else:
+                raw_mean = self.X_raw.mean(axis=1)
+                raw_std = self.X_raw.std(axis=1, ddof=1)
+
+            sta_centered = sta_vec - raw_mean
+
+            sem = raw_std / np.sqrt(N_spk)
+
+            with np.errstate(divide='ignore', invalid='ignore'):
+                sta_z = sta_centered / sem
+                sta_z = np.nan_to_num(sta_z, nan=0.0, posinf=0.0, neginf=0.0)
+
+            self.sta = sta_vec.reshape(self.h, self.w, self.n_lags)
+            self.sta_centered = sta_centered.reshape(self.h, self.w, self.n_lags)
+            self.sta_z = sta_z.reshape(self.h, self.w, self.n_lags)
+
+            if center:
+                self.sta = self.sta_centered
 
             else:
                 raw_std  = self.X_raw.std(axis=1, ddof=1).reshape(self.h, self.w, self.n_lags)
